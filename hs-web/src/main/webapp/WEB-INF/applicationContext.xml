@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+        http://www.springframework.org/schema/data/jpa
+        http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+	<description>SpringFramework</description>
+
+	<context:component-scan base-package="com.wbz">
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+    <jpa:repositories base-package="com.wbz.dao"/>
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" >
+        <property name="jdbcUrl" value="${jdbcUrl}"/>
+        <property name="driverClass" value="${driverClass}"/>
+        <property name="user" value="${user}"/>
+        <property name="password" value="${password}"/>
+
+        <!-- 其他配置 -->
+        <!--初始化时获取三个连接，取值应在minPoolSize与maxPoolSize之间。Default: 3 -->
+        <property name="initialPoolSize" value="3"></property>
+        <!--连接池中保留的最小连接数。Default: 3 -->
+        <property name="minPoolSize" value="3"></property>
+        <!--连接池中保留的最大连接数。Default: 15 -->
+        <property name="maxPoolSize" value="5"></property>
+        <!--当连接池中的连接耗尽的时候c3p0一次同时获取的连接数。Default: 3 -->
+        <property name="acquireIncrement" value="3"></property>
+        <!-- 控制数据源内加载的PreparedStatements数量。如果maxStatements与maxStatementsPerConnection均为0，则缓存被关闭。Default: 0 -->
+        <property name="maxStatements" value="8"></property>
+        <!--maxStatementsPerConnection定义了连接池内单个连接所拥有的最大缓存statements数。Default: 0 -->
+        <property name="maxStatementsPerConnection" value="5"></property>
+        <!--最大空闲时间,1800秒内未使用则连接被丢弃。若为0则永不丢弃。Default: 0 -->
+        <property name="maxIdleTime" value="1800"></property>
+    </bean>
+    <bean id="entityManagerFactory"
+          class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <!--<property name="persistenceUnitName" value="zUnit" />-->
+        <property name="packagesToScan" value="com.wbz.entity" />
+        <property name="dataSource" ref="dataSource" />
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+<!--                <property name="databasePlatform" value="${database.platform}" />
+                <property name="generateDdl" value="${database.generateDdl}" />-->
+                <property name="showSql" value="${showsql}" />
+            </bean>
+        </property>
+    </bean>
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager" p:entityManagerFactory-ref="entityManagerFactory"></bean>
+
+    <context:property-placeholder location="classpath:jdbc.properties" />
+<!--    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+
+        <property name="configLocation" value="classpath:hibernate.cfg.xml"></property>
+
+        <property name="dataSource">
+            <bean class="com.mchange.v2.c3p0.ComboPooledDataSource" >
+                <property name="jdbcUrl" value="${jdbcUrl}"/>
+                <property name="driverClass" value="${driverClass}"/>
+                <property name="user" value="${user}"/>
+                <property name="password" value="${password}"/>
+
+                &lt;!&ndash; 其他配置 &ndash;&gt;
+                &lt;!&ndash;初始化时获取三个连接，取值应在minPoolSize与maxPoolSize之间。Default: 3 &ndash;&gt;
+                <property name="initialPoolSize" value="3"></property>
+                &lt;!&ndash;连接池中保留的最小连接数。Default: 3 &ndash;&gt;
+                <property name="minPoolSize" value="3"></property>
+                &lt;!&ndash;连接池中保留的最大连接数。Default: 15 &ndash;&gt;
+                <property name="maxPoolSize" value="5"></property>
+                &lt;!&ndash;当连接池中的连接耗尽的时候c3p0一次同时获取的连接数。Default: 3 &ndash;&gt;
+                <property name="acquireIncrement" value="3"></property>
+                &lt;!&ndash; 控制数据源内加载的PreparedStatements数量。如果maxStatements与maxStatementsPerConnection均为0，则缓存被关闭。Default: 0 &ndash;&gt;
+                <property name="maxStatements" value="8"></property>
+                &lt;!&ndash;maxStatementsPerConnection定义了连接池内单个连接所拥有的最大缓存statements数。Default: 0 &ndash;&gt;
+                <property name="maxStatementsPerConnection" value="5"></property>
+                &lt;!&ndash;最大空闲时间,1800秒内未使用则连接被丢弃。若为0则永不丢弃。Default: 0 &ndash;&gt;
+                <property name="maxIdleTime" value="1800"></property>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="txManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"></property>
+    </bean>
+    <tx:annotation-driven transaction-manager="txManager" />-->
+
+    <bean id="jedisConnFactory"
+          class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+          p:usePool="true"/>
+
+    <!-- redis template definition -->
+    <bean id="redisTemplate"
+          class="org.springframework.data.redis.core.RedisTemplate"
+          p:connectionFactory-ref="jedisConnFactory"/>
+
+</beans>
